@@ -2,10 +2,11 @@
 export libopenblas
 
 using CompilerSupportLibraries_jll
+using libblastrampoline_jll
 JLLWrappers.@generate_wrapper_header("OpenBLAS32")
 JLLWrappers.@declare_library_product(libopenblas, "libopenblas.dll")
 function __init__()
-    JLLWrappers.@generate_init_header(CompilerSupportLibraries_jll)
+    JLLWrappers.@generate_init_header(CompilerSupportLibraries_jll, libblastrampoline_jll)
     JLLWrappers.@init_library_product(
         libopenblas,
         "bin\\libopenblas.dll",
@@ -13,4 +14,11 @@ function __init__()
     )
 
     JLLWrappers.@generate_init_footer()
+        try
+        ccall((:lbt_forward, libblastrampoline_jll.libblastrampoline), Int32,
+              (Cstring, Int32, Int32, Cstring),
+              libopenblas_path, Int32(0), Int32(0), C_NULL)
+    catch
+    end
+
 end  # __init__()
